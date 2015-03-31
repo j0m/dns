@@ -43,6 +43,9 @@ func setRR(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	return setRFC3597(h, c, o, f)
 }
 
+func SetRR() {
+}
+
 // A remainder of the rdata with embedded spaces, return the parsed string (sans the spaces)
 // or an error
 func endingToString(c chan lex, errstr, f string) (string, *ParseError, string) {
