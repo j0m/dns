@@ -53,10 +53,10 @@ func SetRR(h RR_Header, rrType uint16, r string) (RR, *ParseError) {
 
 	//fake a lexer tokens
 	data := strings.Split(r, " ")
-	c := make(chan lex, len(data)*2) //reserve space for data and blanks
+	c := make(chan lex, len(data) * 2) //reserve space for data and blanks
 
 	for i:=0; i < len(data); i++ {
-		l := lex{data[i], "", len(r), false, zString, 1, 1, 0, ""}
+		l := lex{data[i], "", len(data[i]), false, zString, 1, 1, 0, ""}
 		c <- l
 		l = lex{"", "", 1, false, zBlank, 1, 1, 0, ""}
 		c <- l

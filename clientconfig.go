@@ -2,6 +2,7 @@ package dns
 
 import (
 	"bufio"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -43,6 +44,7 @@ func ClientConfigFromFile(resolvconf string) (*ClientConfig, error) {
 		if len(f) < 1 {
 			continue
 		}
+	caseSwitch:
 		switch f[0] {
 		case "nameserver": // add one name server
 			if len(f) > 1 {
@@ -50,6 +52,17 @@ func ClientConfigFromFile(resolvconf string) (*ClientConfig, error) {
 				// just an IP address.  Otherwise we need DNS
 				// to look it up.
 				name := f[1]
+
+				addrs, _ := net.InterfaceAddrs()
+				
+				for i := 0; i < len(addrs); i++ {
+					tmpAddr := strings.Split(addrs[i].String(), "/")
+
+ 					if tmpAddr[0] == name {
+						break caseSwitch
+					}
+				}
+
 				c.Servers = append(c.Servers, name)
 			}
 
