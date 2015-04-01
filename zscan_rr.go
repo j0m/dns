@@ -43,7 +43,29 @@ func setRR(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	return setRFC3597(h, c, o, f)
 }
 
-func SetRR() {
+//Exposes setRR for ease of construction own records from external application
+func SetRR(h RR_Header, rrType uint16, r string) (RR, *ParseError) {
+	parserfunc, ok := typeToparserFunc[h.Rrtype]
+
+	if !ok {
+		return nil, &ParseError{"", "Unknown record type", lex{}}
+	}
+
+	//fake a lexer tokens
+	data := strings.Split(r, " ")
+	c := make(chan lex, len(data)*2) //reserve space for data and blanks
+
+	for i:=0; i < len(data); i++ {
+		l := lex{data[i], "", len(r), false, zString, 1, 1, 0, ""}
+		c <- l
+		l = lex{"", "", 1, false, zBlank, 1, 1, 0, ""}
+		c <- l
+	}
+	
+	//feed it to parse function
+	rr, err, _ := parserfunc.Func(h, c, "", "")
+	
+	return rr, err
 }
 
 // A remainder of the rdata with embedded spaces, return the parsed string (sans the spaces)
@@ -130,7 +152,7 @@ func endingToTxtSlice(c chan lex, errstr, f string) ([]string, *ParseError, stri
 func setA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	rr := new(A)
 	rr.Hdr = h
-
+	
 	l := <-c
 	if l.length == 0 { // Dynamic updates.
 		return rr, nil, ""
@@ -139,6 +161,7 @@ func setA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	if rr.A == nil {
 		return nil, &ParseError{f, "bad A A", l}, ""
 	}
+	
 	return rr, nil, ""
 }
 
